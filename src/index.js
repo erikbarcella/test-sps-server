@@ -2,10 +2,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const client = require('./redisClient'); // Arquivo do Redis
-const authenticate = require('./middleware/authenticate'); // Middleware
+const authenticate = require('./middlware/authenticate'); // Middleware
+const cors = require('cors');
 
 const app = express();
 app.use(bodyParser.json());
+
+app.use(cors({
+  origin: '*', // Permite qualquer origem
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
+}));
 
 // Gerar Token JWT
 app.post('/login', async (req, res) => {
@@ -23,7 +30,7 @@ app.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign({ email, type: userData.type }, 'mySecret', { expiresIn: '1h' });
-    res.json({ token });
+    res.json({ token, user: { email, name: userData.name, type: userData.type } });
   } catch (err) {
     next(err);
   }
